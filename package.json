@@ -1,0 +1,36 @@
+{
+  "name": "bizsaya_broadcast",
+  "version": "1.0.0",
+  "description": "Bizsaya broadcast source code",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/eddy03/Bizsaya_Broadcast.git"
+  },
+  "keywords": [
+    "cron",
+    "scheduler",
+    "bizsaya"
+  ],
+  "author": "eddytech03@gmail.com",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/eddy03/Bizsaya_Broadcast/issues"
+  },
+  "homepage": "https://github.com/eddy03/Bizsaya_Broadcast#readme",
+  "dependencies": {
+    "@google-cloud/datastore": "^0.7.1",
+    "async": "^2.2.0",
+    "bluebird": "^3.5.0",
+    "cron": "^1.2.1",
+    "dotenv": "^4.0.0",
+    "fb": "^1.1.1",
+    "hoek": "^4.1.0",
+    "lodash": "^4.17.4",
+    "moment": "^2.18.1",
+    "superagent": "^3.5.2"
+  }
+}
