@@ -30,9 +30,13 @@
     "dotenv": "^4.0.0",
     "fb": "^1.1.1",
     "hoek": "^4.1.0",
+    "jsonfile": "^2.4.0",
     "lodash": "^4.17.4",
     "moment": "^2.18.1",
+    "pusher-js": "^4.0.0",
+    "randomstring": "^1.1.5",
     "raven": "^1.2.0",
+    "redis": "^2.7.1",
     "superagent": "^3.5.2"
   }
 }
