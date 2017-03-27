@@ -1,33 +1,20 @@
 'use strict'
 
+const Audit = require('./audit_trail')
+
 let mid = {}
 
-mid.sendToUser = (id, text) => {
-
-  global.FB.setAccessToken(process.env.ACCESSTOKEN)
-
-  let params = {
+mid.sendToUser = (pageId, id, text) => {
+  let payload = {
     recipient: { id },
     message: { text }
   }
 
-  global.FB.api('me/messages', 'POST', params, response => {
-    if (!response || response.error) {
-      let err = new Error(`Unable to send notification to user ${id} on broadcast module!`)
-      err.error = response.error
-      throw err
-    } else {
-      // Audit trail anyone?
-    }
-  })
-
+  sendTo(pageId, id, payload)
 }
 
-mid.readyToBroadcast = id => {
-
-  global.FB.setAccessToken(process.env.ACCESSTOKEN)
-
-  let params = {
+mid.readyToBroadcast = (pageId, id) => {
+  let payload = {
     recipient: { id },
     message: {
       attachment: {
@@ -39,16 +26,25 @@ mid.readyToBroadcast = id => {
     }
   }
 
-  global.FB.api('me/messages', 'POST', params, response => {
-    if (!response || response.error) {
-      let err = new Error(`Unable to send notification to user ${id} on broadcast module!`)
-      err.error = response.error
-      throw err
-      console.log('Error ', response.error)
-    } else {
-      // Audit trail anyone?
-    }
-  })
+  sendTo(pageId, id, payload)
 }
 
 module.exports = mid
+
+function sendTo (pageId, id, payload) {
+  if (id) {
+    global.FB.setAccessToken(process.env.ACCESSTOKEN)
+
+    global.FB.api('me/messages', 'POST', payload, response => {
+      if (!response || response.error) {
+        console.log('Send MID informer error : ', response.error)
+        let err = new Error(`Unable to send notification to user ${id} on broadcast module!`)
+        err.error = response.error
+        throw err
+      } else {
+        let message = payload.message.text ? payload.message.text : `Send ready to broadcast to admin mid ${id}`
+        Audit.logAudit(pageId, message, null)
+      }
+    })
+  }
+}

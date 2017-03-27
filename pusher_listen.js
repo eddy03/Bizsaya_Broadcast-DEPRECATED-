@@ -8,53 +8,42 @@ const Audit = require('./audit_trail')
 let pusherListen = {}
 
 pusherListen.listen = () => {
-
   return new Promise(resolve => {
-
     // Just resolve this promise immediately
     resolve()
 
     global.Pusher.subscribe('broadcast').bind('begin', data => {
-
       Async.auto({
 
         getPageDetail: cb => {
-
           let COLLECTION_NAME = process.env.DEV === 'true' ? 'dev_pages' : 'pages'
           var key = global.DB.key([ COLLECTION_NAME, data.page_id ])
           global.DB.get(key, function (err, entity) {
             cb(err, entity)
           })
-
         },
 
         getListOfUsers: cb => {
-
           let COLLECTION_NAME = process.env.DEV === 'true' ? 'dev_messenger_user' : 'messenger_user'
           let query = global.DB.createQuery(COLLECTION_NAME).filter('page_id', data.page_id)
           global.DB.runQuery(query, (err, users) => {
             cb(err, users)
           })
-
         },
 
         getMID: cb => {
-
           let COLLECTION_NAME = process.env.DEV === 'true' ? 'dev_credentials' : 'credentials'
           var key = global.DB.key([ COLLECTION_NAME, data.fb_id ])
           global.DB.get(key, function (err, entity) {
             cb(err, entity)
           })
-
         }
 
       }, (err, results) => {
-
         if (err) {
           let error = new Error('Fail to initialize the broadcast detail for page ', data.page_id)
           error.error = err
           throw error
-          return
         }
 
         let dataToSave = {
@@ -71,7 +60,6 @@ pusherListen.listen = () => {
           dataToSave.toBeSend.push(user.sender_id)
           callback()
         }, () => {
-
           global.Redis.set(`broadcast_${data.page_id}`, dataToSave)
             .then(() => {
               return global.Redis.get('broadcast')
@@ -85,10 +73,8 @@ pusherListen.listen = () => {
               }
             })
             .then(() => {
-              if(dataToSave.mid) {
-                MidInformer.sendToUser(dataToSave.mid, 'Memulakan proses untuk broadcast mesej di FB page anda. Kami akan memaklumkan sekiranya terdapat mesej yang tidak boleh dihantar disini.')
-                MidInformer.readyToBroadcast(dataToSave.mid)
-              }
+              MidInformer.sendToUser(data.page_id, dataToSave.mid, 'Memulakan proses untuk broadcast mesej di FB page anda. Kami akan memaklumkan sekiranya terdapat mesej yang tidak boleh dihantar disini.')
+              MidInformer.readyToBroadcast(data.page_id, dataToSave.mid)
               Audit.logAudit(data.page_id, `Redis broadcast setup properly`, dataToSave)
               return null
             })
@@ -99,15 +85,10 @@ pusherListen.listen = () => {
               error.payload = dataToSave
               throw error
             })
-
         })
-
       })
-
     })
-
   })
-
 }
 
 module.exports = pusherListen

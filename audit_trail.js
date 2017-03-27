@@ -5,8 +5,7 @@ const RandomString = require('randomstring')
 
 let Audit = {}
 
-Audit.logAudit = (pageId, message, payload, is_error) => {
-
+Audit.logAudit = (pageId, message, payload, isError) => {
   let COLLECTION_NAME = process.env.DEV === 'true' ? 'dev_broadcast_log' : 'broadcast_log'
 
   let id = Moment().unix() + '_' + RandomString.generate()
@@ -17,7 +16,7 @@ Audit.logAudit = (pageId, message, payload, is_error) => {
     page_id: pageId,
     message,
     payload,
-    is_error: is_error || false,
+    is_error: isError || false,
     created_at: new Date()
   }
 
@@ -26,7 +25,6 @@ Audit.logAudit = (pageId, message, payload, is_error) => {
       throw err
     }
   })
-
 }
 
 module.exports = Audit
