@@ -20,7 +20,7 @@ init.initialize = () => {
 
     global.Redis = redisClient.initRedis()
 
-    sentry.initSentry()
+    global.Raven = sentry.initSentry()
 
     PusherListen.listen()
 

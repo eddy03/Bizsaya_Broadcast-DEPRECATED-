@@ -1,5 +1,6 @@
 'use strict'
 
+const Promise = require('bluebird')
 const Audit = require('./audit_trail')
 
 let mid = {}
@@ -32,19 +33,31 @@ mid.readyToBroadcast = (pageId, id) => {
 module.exports = mid
 
 function sendTo (pageId, id, payload) {
-  if (id) {
-    global.FB.setAccessToken(process.env.ACCESSTOKEN)
 
-    global.FB.api('me/messages', 'POST', payload, response => {
-      if (!response || response.error) {
-        console.log('Send MID informer error : ', response.error)
-        let err = new Error(`Unable to send notification to user ${id} on broadcast module!`)
-        err.error = response.error
-        throw err
-      } else {
-        let message = payload.message.text ? payload.message.text : `Send ready to broadcast to admin mid ${id}`
-        Audit.logAudit(pageId, message, null)
-      }
-    })
-  }
+  return new Promise((resolve, reject) => {
+
+    if (id) {
+      global.FB.setAccessToken(process.env.ACCESSTOKEN)
+
+      global.FB.api('me/messages', 'POST', payload, response => {
+        if (!response || response.error) {
+          console.log('Send MID informer error : ', response.error)
+          let err = new Error(`Unable to send notification to user ${id} on broadcast module!`)
+          err.error = response.error
+          global.Raven.captureException(err)
+          reject(err)
+        } else {
+          let message = payload.message.text ? payload.message.text : `Send ready to broadcast to admin mid ${id}`
+          Audit.logAudit(pageId, message, null)
+          resolve()
+        }
+      })
+    } else {
+      resolve()
+    }
+
+  })
+
+
+
 }

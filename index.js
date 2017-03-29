@@ -13,4 +13,5 @@ Init.initialize()
   })
   .catch(err => {
     console.error('Error bootup the broadcast engine', err)
+    global.Raven.captureException(err)
   })
