@@ -22,7 +22,7 @@ Audit.logAudit = (pageId, message, payload, isError) => {
 
   global.DB.save({ key, data }, err => {
     if (err) {
-      throw err
+      global.Raven.captureException(err)
     }
   })
 }

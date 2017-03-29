@@ -19,7 +19,7 @@ Process.broadcastProcess = () => {
       return getBroadcastData(broadCastDataIDs)
     })
     .catch(err => {
-      throw err
+      global.Raven.captureException(err)
     })
 }
 
@@ -66,6 +66,8 @@ function processSpecificData (data) {
     for (i = 0; i < 20; i++) {
       if (data.toBeSend[(i + data.start)]) {
         sendTheMessage(data.page_id, data.access_token, data.mid, data.message, data.toBeSend[(i + data.start)])
+          .then(() => { /* Broadcast success */ })
+          .catch(err => { global.Raven.captureException(err) })
       } else {
         Audit.logAudit(data.page_id, `Broadcast successfully ended. Total broadcast ${data.start + i}`, null)
         MidInformer.sendToUser(data.page_id, data.mid, `Broadcast tamat. Sebanyak ${data.start + i} fans telah dibroadcast dengan mesej yang anda berikan`)
@@ -76,7 +78,7 @@ function processSpecificData (data) {
             var key = global.DB.key([ COLLECTION_NAME, data.id ])
             global.DB.get(key, function (err, entity) {
               if (err) {
-                throw err
+                global.Raven.captureException(err)
               }
               if (entity) {
                 entity.can_send = false
@@ -84,7 +86,7 @@ function processSpecificData (data) {
                 entity.already_send = true
                 global.DB.save({ key, data: entity }, err => {
                   if (err) {
-                    console.error('Fail to update broadcast message')
+                    global.Raven.captureException(err)
                     Audit.logAudit(data.page_id, `Fail to update broadcast message detail`, null, true)
                   }
                 })
@@ -101,20 +103,22 @@ function processSpecificData (data) {
     if (!_.has(data, 'delete_this')) {
       data.start = data.start + i
       global.Redis.set(`broadcast_${data.page_id}`, data)
-        .then(() => {
-          resolve()
-        })
-        .catch(err => {
-          reject(err)
-        })
+        .then(() => { })
+        .catch(err => { global.Raven.captureException(err) })
     } else {
       // do nothing
     }
+
   })
 }
 
 function sendTheMessage (pageId, accessToken, mid, message, recipientId) {
   return new Promise((resolve, reject) => {
+
+    if(process.env.DONTSEND === 'true') {
+      return
+    }
+
     global.FB.setAccessToken(accessToken)
 
     let params = {
@@ -124,22 +128,23 @@ function sendTheMessage (pageId, accessToken, mid, message, recipientId) {
 
     global.FB.api('me/messages', 'POST', params, response => {
       if (!response || response.error) {
-        console.error('Error send broadcast message ', response.error.message)
-        Audit.logAudit(pageId, `Error during sending broadcast to ${recipientId}`, response.error)
+
         if (response.error.code === 613) {
           global.Redis.del(`broadcast_${pageId}`).then(() => { }).catch(err => { console.error('Error ', err) })
           MidInformer.sendToUser(pageId, mid, 'Penggunakan data FB page anda telah sampai ke had yang ditetapkan oleh FB. Bizsaya tidak mampu untuk menghantar sebarang mesej keluar.')
         } else {
           MidInformer.sendToUser(pageId, mid, `Terdapat ralat yang diberikan oleh FB sewaktu Bizsaya menghantar mesej keluar ke fan : ${recipientId}. Hubungi admin untuk mengetahui detail fan ini dengan memberikan no id ini : ${recipientId}\n\n Mesej ralat dari FB : ${response.error.message}`)
-          let err = new Error(`Error send broadcast mesej in page ${pageId} for recipient ${recipientId}`)
-          err.error = response.error
-          throw err
         }
+
+        console.error('Error send broadcast message ', response.error.message)
+        Audit.logAudit(pageId, `Error during sending broadcast to ${recipientId}`, response.error, true)
+        let err = new Error(`Error send broadcast mesej in page ${pageId} for recipient ${recipientId}`)
+        err.error = response.error
+        reject(err)
       } else {
-        // Audit trail anyone?
+        resolve()
       }
     })
 
-    resolve()
   })
 }

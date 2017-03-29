@@ -43,7 +43,7 @@ pusherListen.listen = () => {
         if (err) {
           let error = new Error('Fail to initialize the broadcast detail for page ', data.page_id)
           error.error = err
-          throw error
+          global.Raven.captureException(error)
         }
 
         let dataToSave = {
@@ -83,7 +83,7 @@ pusherListen.listen = () => {
               let error = new Error('Fail to setup the redis broadcast for page ', data.page_id)
               error.error = err
               error.payload = dataToSave
-              throw error
+              global.Raven.captureException(error)
             })
         })
       })
