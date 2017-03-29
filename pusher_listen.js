@@ -73,7 +73,7 @@ pusherListen.listen = () => {
               }
             })
             .then(() => {
-              MidInformer.sendToUser(data.page_id, dataToSave.mid, 'Memulakan proses untuk broadcast mesej di FB page anda. Kami akan memaklumkan sekiranya terdapat mesej yang tidak boleh dihantar disini.')
+              MidInformer.sendToUser(data.page_id, dataToSave.mid, `Memulakan proses untuk broadcast mesej di FB page anda. Terdapat sebanyak ${dataToSave.toBeSend.length} fans dijangka menerima broadcast ini. Kami akan memaklumkan sekiranya terdapat mesej yang tidak boleh dihantar disini.`)
               MidInformer.readyToBroadcast(data.page_id, dataToSave.mid)
               Audit.logAudit(data.page_id, `Redis broadcast setup properly`, dataToSave)
               return null
