@@ -23,6 +23,8 @@ init.initialize = () => {
     sentry.initSentry()
 
     PusherListen.listen()
+
+    resolve()
   })
 }
 
