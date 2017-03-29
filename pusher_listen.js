@@ -12,7 +12,7 @@ pusherListen.listen = () => {
     // Just resolve this promise immediately
     resolve()
 
-    global.Pusher.subscribe('broadcast').bind('begin', data => {
+    global.Pusher.subscribe(process.env.LISTEN_CHANNEL).bind(process.env.LISTEN_ACTIVITY, data => {
       Async.auto({
 
         getPageDetail: cb => {
