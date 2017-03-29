@@ -68,7 +68,7 @@ function processSpecificData (data) {
         sendTheMessage(data.page_id, data.access_token, data.mid, data.message, data.toBeSend[(i + data.start)])
       } else {
         Audit.logAudit(data.page_id, `Broadcast successfully ended. Total broadcast ${data.start + i}`, null)
-        MidInformer.sendToUser(data.mid, `Broadcast tamat. Sebanyak ${data.start + i} telah dihantar dengan mesej yang anda berikan.`)
+        MidInformer.sendToUser(data.page_id, data.mid, `Broadcast tamat. Sebanyak ${data.start + i} telah dihantar dengan mesej yang anda berikan.`)
         data.delete_this = true
         global.Redis.del(`broadcast_${data.page_id}`)
           .then(() => {
@@ -128,9 +128,9 @@ function sendTheMessage (pageId, accessToken, mid, message, recipientId) {
         Audit.logAudit(pageId, `Error during sending broadcast to ${recipientId}`, response.error)
         if (response.error.code === 613) {
           global.Redis.del(`broadcast_${pageId}`).then(() => { }).catch(err => { console.error('Error ', err) })
-          MidInformer.sendToUser(mid, 'Penggunakan data FB page anda telah sampai ke had yang ditetapkan oleh FB. Bizsaya tidak mampu untuk menghantar sebarang mesej keluar.')
+          MidInformer.sendToUser(pageId, mid, 'Penggunakan data FB page anda telah sampai ke had yang ditetapkan oleh FB. Bizsaya tidak mampu untuk menghantar sebarang mesej keluar.')
         } else {
-          MidInformer.sendToUser(mid, `Terdapat ralat yang diberikan oleh FB sewaktu Bizsaya menghantar mesej keluar ke fan : ${recipientId}. Hubungi admin untuk mengetahui detail fan ini dengan memberikan no id ini : ${recipientId}\n\n Mesej ralat dari FB : ${response.error.message}`)
+          MidInformer.sendToUser(pageId, mid, `Terdapat ralat yang diberikan oleh FB sewaktu Bizsaya menghantar mesej keluar ke fan : ${recipientId}. Hubungi admin untuk mengetahui detail fan ini dengan memberikan no id ini : ${recipientId}\n\n Mesej ralat dari FB : ${response.error.message}`)
           let err = new Error(`Error send broadcast mesej in page ${pageId} for recipient ${recipientId}`)
           err.error = response.error
           throw err
