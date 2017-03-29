@@ -68,7 +68,7 @@ function processSpecificData (data) {
         sendTheMessage(data.page_id, data.access_token, data.mid, data.message, data.toBeSend[(i + data.start)])
       } else {
         Audit.logAudit(data.page_id, `Broadcast successfully ended. Total broadcast ${data.start + i}`, null)
-        MidInformer.sendToUser(data.page_id, data.mid, `Broadcast tamat. Sebanyak ${data.start + i} telah dihantar dengan mesej yang anda berikan.`)
+        MidInformer.sendToUser(data.page_id, data.mid, `Broadcast tamat. Sebanyak ${data.start + i} fans telah dibroadcast dengan mesej yang anda berikan`)
         data.delete_this = true
         global.Redis.del(`broadcast_${data.page_id}`)
           .then(() => {
