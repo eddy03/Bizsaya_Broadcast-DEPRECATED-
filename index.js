@@ -4,8 +4,8 @@ require('dotenv').config()
 
 const CronJob = require('cron').CronJob
 
-const Process = require('./broadcast')
 const Init = require('./init')
+const Process = require('./broadcast')
 
 Init.initialize()
   .then(() => {
