@@ -37,6 +37,7 @@ function sendTo (pageId, id, payload) {
   return new Promise((resolve, reject) => {
 
     if (id) {
+      global.Firebase.updateTx()
       global.FB.setAccessToken(process.env.ACCESSTOKEN)
 
       global.FB.api('me/messages', 'POST', payload, response => {
@@ -44,11 +45,12 @@ function sendTo (pageId, id, payload) {
           console.log('Send MID informer error : ', response.error)
           let err = new Error(`Unable to send notification to user ${id} on broadcast module!`)
           err.error = response.error
+          Audit.logAudit(pageId, `Unable to send notification to admin MID ${id}`, response.error, true)
           global.Raven.captureException(err)
           reject(err)
         } else {
           let message = payload.message.text ? payload.message.text : `Send ready to broadcast to admin mid ${id}`
-          Audit.logAudit(pageId, message, null)
+          Audit.logAudit(pageId, 'To Admin Message : ' + message, null)
           resolve()
         }
       })

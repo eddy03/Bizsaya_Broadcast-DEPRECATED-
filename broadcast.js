@@ -126,6 +126,7 @@ function sendTheMessage (pageId, accessToken, mid, message, recipientId) {
       message: { text: message }
     }
 
+    global.Firebase.updateTx()
     global.FB.api('me/messages', 'POST', params, response => {
       if (!response || response.error) {
 
