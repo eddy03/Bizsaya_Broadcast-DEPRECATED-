@@ -6,6 +6,7 @@ const facebook = require('./facebook')
 const pusherjs = require('./pusher_js')
 const redisClient = require('./redis')
 const sentry = require('./sentry')
+const firebase = require('./firebase')
 const PusherListen = require('../pusher_listen')
 
 let init = {}
@@ -24,7 +25,15 @@ init.initialize = () => {
 
     PusherListen.listen()
 
-    resolve()
+    firebase
+      .then(data => {
+        global.Firebase = data
+        resolve()
+      })
+      .catch(err => {
+        reject(err)
+      })
+
   })
 }
 

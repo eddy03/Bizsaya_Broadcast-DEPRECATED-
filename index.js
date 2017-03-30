@@ -9,6 +9,7 @@ const Process = require('./broadcast')
 
 Init.initialize()
   .then(() => {
+    console.log('Bizsaya Broadcast is ready')
     return new CronJob('*/20 * * * * *', Process.broadcastProcess, null, true, 'Asia/Kuala_Lumpur')
   })
   .catch(err => {

@@ -37,6 +37,7 @@ function sendTo (pageId, id, payload) {
   return new Promise((resolve, reject) => {
 
     if (id) {
+      global.Firebase.updateTx()
       global.FB.setAccessToken(process.env.ACCESSTOKEN)
 
       global.FB.api('me/messages', 'POST', payload, response => {
