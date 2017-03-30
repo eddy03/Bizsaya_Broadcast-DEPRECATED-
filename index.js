@@ -9,7 +9,7 @@ const Init = require('./init')
 
 Init.initialize()
   .then(() => {
-    return new CronJob('*/10 * * * * *', Process.broadcastProcess, null, true, 'Asia/Kuala_Lumpur')
+    return new CronJob('*/20 * * * * *', Process.broadcastProcess, null, true, 'Asia/Kuala_Lumpur')
   })
   .catch(err => {
     console.error('Error bootup the broadcast engine', err)
