@@ -137,6 +137,10 @@ function sendTheMessage (pageId, accessToken, mid, message, recipientDetail) {
     let recipientId = recipientDetail.sender_id
     message = message.replace(new RegExp('{{sender_name}}', 'g'), recipientDetail.sender_name)
 
+    if(message.length > 640) {
+      message = message.substring(0, 640)
+    }
+
     let params = {
       recipient: { id: recipientId },
       message: { text: message }
