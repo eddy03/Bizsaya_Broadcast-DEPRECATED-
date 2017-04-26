@@ -5,9 +5,9 @@ const Async = require('async')
 const MidInformer = require('./notification')
 const Audit = require('./audit')
 
-const PAGES_TABLE = process.env.DEV === 'true' ? 'dev_pages' : 'pages'
-const MESSENGER_USER_TABLE = process.env.DEV === 'true' ? 'dev_messenger_user' : 'messenger_user'
-const CREDENTIALS_TABLE = process.env.DEV === 'true' ? 'dev_credentials' : 'credentials'
+const CredentialsModel = require('./models/credentials')
+const PagesModel = require('./models/pages')
+const MessengerUserModel = require('./models/messenger_user')
 
 let pusherListen = {}
 
@@ -17,18 +17,22 @@ pusherListen.listen = () => {
     resolve()
 
     global.Pusher.subscribe(process.env.LISTEN_CHANNEL).bind(process.env.LISTEN_ACTIVITY, data => {
-      const DB = global.DB
 
       Async.auto({
         getMID: cb => {
-          DB.get(DB.key([ CREDENTIALS_TABLE, data.fb_id ]), (err, entity) => { cb(err, entity) })
+          CredentialsModel.getCredential(data.fb_id)
+            .then(credential => { cb(null, credential); return null })
+            .catch(err => { cb(err); return null })
         },
         getPageDetail: cb => {
-          DB.get(DB.key([ PAGES_TABLE, data.page_id ]), (err, entity) => { cb(err, entity) })
+          PagesModel.getPage(data.page_id)
+            .then(page => { cb(null, page); return null })
+            .catch(err => { cb(err); return null })
         },
         getListOfUsers: cb => {
-          let query = DB.createQuery(MESSENGER_USER_TABLE).filter('page_id', data.page_id)
-          DB.runQuery(query, (err, users) => { cb(err, users) })
+          MessengerUserModel.getUsers(data.page_id)
+            .then(users => { cb(null, users); return null })
+            .catch(err => { cb(err); return null })
         }
       }, (err, results) => {
         if (err) {
@@ -68,7 +72,7 @@ pusherListen.listen = () => {
               }
             })
             .then(() => {
-              MidInformer.sendToUser(data.page_id, dataToSave.mid, `Memulakan proses untuk broadcast mesej di FB page anda. Terdapat sebanyak ${dataToSave.toBeSend.length} fans dijangka menerima broadcast ini. Kami akan memaklumkan sekiranya terdapat mesej yang tidak boleh dihantar disini.`)
+              MidInformer.sendToUser(data.page_id, dataToSave.mid, `Memulakan proses untuk broadcast mesej di FB page anda. Terdapat sebanyak ${dataToSave.toBeSend.length} prospek dijangka menerima broadcast ini. Kami akan memaklumkan sekiranya terdapat mesej yang tidak boleh dihantar disini.`)
               MidInformer.readyToBroadcast(data.page_id, dataToSave.mid)
               dataToSave.totalToBeMessage = dataToSave.toBeSend.length
               delete dataToSave.toBeSend
