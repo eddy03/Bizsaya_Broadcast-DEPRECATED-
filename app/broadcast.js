@@ -142,7 +142,7 @@ function sendTheMessage (pageId, accessToken, mid, message, recipientDetail) {
           MidInformer.sendToUser(pageId, mid, 'Penggunakan data FB page anda telah sampai ke had yang ditetapkan oleh FB. Bizsaya tidak mampu untuk menghantar sebarang mesej keluar.')
           resolve()
         } else if (response.error.code === 200 && response.error.error_subcode === 1545041) {
-          MidInformer.sendToUser(pageId, mid, `Mesej ke prospek ${recipientDetail.sender_name} tidak dapat dihantar kerana prospek telah memadam mesej dengan FB page anda sebelum ini.`)
+          MidInformer.sendToUser(pageId, mid, `Mesej ke prospek ${recipientDetail.sender_name} tidak dapat dihantar kerana prospek telah memadam mesej dengan FB page anda sebelum ini atau akaun FB prospek tersebut telah dipadam oleh FB.`)
           resolve()
         } else {
           Audit.logAudit(pageId, `Error during sending broadcast to ${recipientId}`, response.error, true)
