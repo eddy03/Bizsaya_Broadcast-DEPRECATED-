@@ -18,9 +18,6 @@ Process.broadcastProcess = () => {
 
   global.Redis.get('broadcast')
     .then(broadCastDataIDs => {
-      if (process.env.DEV === 'true') {
-        console.log('%s - Begin broadcasting', new Date())
-      }
       return getBroadcastData(broadCastDataIDs)
     })
     .catch(err => {
@@ -65,6 +62,11 @@ function processSpecificData (data) {
   return new Promise((resolve, reject) => {
     resolve()
 
+    if (process.env.DEV === 'true') {
+      console.log('%s - Begin broadcasting', new Date())
+    }
+
+    global.adminPush(`Up up and away`, `Page ${data.page_name} from index ${data.start} from ${data.toBeSend.length}`)
     Audit.logAudit(data.page_id, `Begin broadcast from index ${data.start}`, null)
 
     let i = 0
@@ -75,7 +77,8 @@ function processSpecificData (data) {
           .catch(err => { global.Raven.captureException(err) })
       } else {
         Audit.logAudit(data.page_id, `Broadcast successfully ended. Total broadcast ${data.start + i}`, null)
-        MidInformer.sendToUser(data.page_id, data.mid, `Broadcast tamat. Sebanyak ${data.start + i} fans telah dibroadcast dengan mesej yang anda berikan`)
+        MidInformer.sendToUser(data.page_id, data.mid, `Broadcast tamat. Sebanyak ${data.start + i} prospek telah dibroadcast dengan mesej yang anda berikan`)
+        global.adminPush(`Broadcast ended`, `Broadcast for page ${data.page_id} ended. ${data.start + i} prospect are send with those message`)
         data.delete_this = true
         global.Redis.del(`broadcast_${data.page_id}`)
           .then(() => {
@@ -89,6 +92,13 @@ function processSpecificData (data) {
                 entity.can_send = false
                 entity.on_send = false
                 entity.already_send = true
+
+                if(process.env.DEV === 'true') {
+                  entity.can_send = true
+                  entity.on_send = false
+                  entity.already_send = false
+                }
+
                 global.DB.save({ key, data: entity }, err => {
                   if (err) {
                     global.Raven.captureException(err)
@@ -159,6 +169,13 @@ function sendTheMessage (pageId, accessToken, mid, message, recipientDetail) {
           reject(err)
         }
       } else {
+        // MessengerUserModel.deleteUser(pageId, recipientDetail.sender_id)
+        //   .then(() => {
+        //     MidInformer.sendToUser(pageId, mid, `Mesej ke prospek ${recipientDetail.sender_name} tidak dapat dihantar kerana prospek telah memadam mesej dengan FB page anda sebelum ini atau akaun FB prospek tersebut telah dipadam oleh FB.`)
+        //   })
+        //   .catch(err => {
+        //
+        //   })
         resolve()
       }
     })

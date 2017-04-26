@@ -46,6 +46,7 @@ pusherListen.listen = () => {
           id: data.id,
           message: data.message,
           page_id: data.page_id,
+          page_name: results.getPageDetail.name,
           mid: results.getMID.mid,
           access_token: results.getPageDetail.access_token,
           toBeSend: [],
@@ -72,6 +73,7 @@ pusherListen.listen = () => {
               }
             })
             .then(() => {
+              global.adminPush(`Begin init broadcast`, `Page ${dataToSave.page_name} with total of ${dataToSave.toBeSend.length} prospect ready to be blast off!`)
               MidInformer.sendToUser(data.page_id, dataToSave.mid, `Memulakan proses untuk broadcast mesej di FB page anda. Terdapat sebanyak ${dataToSave.toBeSend.length} prospek dijangka menerima broadcast ini. Kami akan memaklumkan sekiranya terdapat mesej yang tidak boleh dihantar disini.`)
               MidInformer.readyToBroadcast(data.page_id, dataToSave.mid)
               dataToSave.totalToBeMessage = dataToSave.toBeSend.length
