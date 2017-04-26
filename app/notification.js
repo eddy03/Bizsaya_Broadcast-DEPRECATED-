@@ -1,7 +1,9 @@
 'use strict'
 
 const Promise = require('bluebird')
-const Audit = require('./audit_trail')
+const _ = require('lodash')
+
+const Audit = require('./audit')
 
 let mid = {}
 
@@ -33,16 +35,16 @@ mid.readyToBroadcast = (pageId, id) => {
 module.exports = mid
 
 function sendTo (pageId, id, payload) {
-
   return new Promise((resolve, reject) => {
-
-    if (id) {
+    if (id && !_.isEmpty(id)) {
       global.Firebase.updateTx()
       global.FB.setAccessToken(process.env.ACCESSTOKEN)
 
       global.FB.api('me/messages', 'POST', payload, response => {
         if (!response || response.error) {
-          console.log('Send MID informer error : ', response.error)
+          if (process.env.DEV === 'true') {
+            console.log('Send MID informer error : ', response.error)
+          }
           let err = new Error(`Unable to send notification to user ${id} on broadcast module!`)
           err.error = response.error
           Audit.logAudit(pageId, `Unable to send notification to admin MID ${id}`, response.error, true)
@@ -57,9 +59,5 @@ function sendTo (pageId, id, payload) {
     } else {
       resolve()
     }
-
   })
-
-
-
 }

@@ -5,7 +5,7 @@ require('dotenv').config()
 const CronJob = require('cron').CronJob
 
 const Init = require('./init')
-const Process = require('./broadcast')
+const Process = require('./app/broadcast')
 
 Init.initialize()
   .then(() => {

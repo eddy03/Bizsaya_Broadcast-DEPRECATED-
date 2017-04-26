@@ -3,19 +3,22 @@
 const Promise = require('bluebird')
 const Async = require('async')
 const _ = require('lodash')
-const MidInformer = require('./mid_informer')
-const Audit = require('./audit_trail')
+
+const MidInformer = require('./notification')
+const Audit = require('./audit')
 
 let Process = {}
 
 Process.broadcastProcess = () => {
-
-  if(process.env.DEV === 'true') {
+  if (process.env.DEV === 'true') {
     console.log('%s - searching for task', new Date())
   }
 
   global.Redis.get('broadcast')
     .then(broadCastDataIDs => {
+      if (process.env.DEV === 'true') {
+        console.log('%s - Begin broadcasting', new Date())
+      }
       return getBroadcastData(broadCastDataIDs)
     })
     .catch(err => {
@@ -108,18 +111,19 @@ function processSpecificData (data) {
     } else {
       // do nothing
     }
-
   })
 }
 
-function sendTheMessage (pageId, accessToken, mid, message, recipientId) {
+function sendTheMessage (pageId, accessToken, mid, message, recipientDetail) {
   return new Promise((resolve, reject) => {
-
-    if(process.env.DONTSEND === 'true') {
+    if (process.env.DONTSEND === 'true') {
       return
     }
 
     global.FB.setAccessToken(accessToken)
+
+    let recipientId = recipientDetail.sender_id
+    message = message.replace(new RegExp('{{sender_name}}', 'g'), recipientDetail.sender_name)
 
     let params = {
       recipient: { id: recipientId },
@@ -129,23 +133,26 @@ function sendTheMessage (pageId, accessToken, mid, message, recipientId) {
     global.Firebase.updateTx()
     global.FB.api('me/messages', 'POST', params, response => {
       if (!response || response.error) {
+        if (process.env.DEV === 'true') {
+          console.error('Error send broadcast message ', response.error.message)
+        }
 
         if (response.error.code === 613) {
           global.Redis.del(`broadcast_${pageId}`).then(() => { }).catch(err => { console.error('Error ', err) })
           MidInformer.sendToUser(pageId, mid, 'Penggunakan data FB page anda telah sampai ke had yang ditetapkan oleh FB. Bizsaya tidak mampu untuk menghantar sebarang mesej keluar.')
+          resolve()
+        } else if (response.error.code === 200 && response.error.error_subcode === 1545041) {
+          MidInformer.sendToUser(pageId, mid, `Mesej ke prospek ${recipientDetail.sender_name} tidak dapat dihantar kerana prospek telah memadam mesej dengan FB page anda sebelum ini atau akaun FB prospek tersebut telah dipadam oleh FB.`)
+          resolve()
         } else {
-          MidInformer.sendToUser(pageId, mid, `Terdapat ralat yang diberikan oleh FB sewaktu Bizsaya menghantar mesej keluar ke fan : ${recipientId}. Hubungi admin untuk mengetahui detail fan ini dengan memberikan no id ini : ${recipientId}\n\n Mesej ralat dari FB : ${response.error.message}`)
+          Audit.logAudit(pageId, `Error during sending broadcast to ${recipientId}`, response.error, true)
+          let err = new Error(`Error send broadcast mesej in page ${pageId} for recipient ${recipientId}`)
+          err.error = response.error
+          reject(err)
         }
-
-        console.error('Error send broadcast message ', response.error.message)
-        Audit.logAudit(pageId, `Error during sending broadcast to ${recipientId}`, response.error, true)
-        let err = new Error(`Error send broadcast mesej in page ${pageId} for recipient ${recipientId}`)
-        err.error = response.error
-        reject(err)
       } else {
         resolve()
       }
     })
-
   })
 }
