@@ -141,8 +141,10 @@ function sendTheMessage (pageId, accessToken, mid, message, recipientDetail) {
         if (response.error.code === 613) {
           global.Redis.del(`broadcast_${pageId}`).then(() => { }).catch(err => { console.error('Error ', err) })
           MidInformer.sendToUser(pageId, mid, 'Penggunakan data FB page anda telah sampai ke had yang ditetapkan oleh FB. Bizsaya tidak mampu untuk menghantar sebarang mesej keluar.')
+          resolve()
         } else if(response.error.code === 200 && response.error.error_subcode === 1545041) {
-          // MidInformer.sendToUser(pageId, mid, `Terdapat ralat yang diberikan oleh FB sewaktu Bizsaya menghantar mesej keluar ke fan : ${recipientId}. Hubungi admin untuk mengetahui detail fan ini dengan memberikan no id ini : ${recipientId}\n\n Mesej ralat dari FB : ${response.error.message}`)
+          MidInformer.sendToUser(pageId, mid, `Mesej ke prospek ${recipientDetail.sender_name} tidak dapat dihantar kerana prospek telah memadam mesej dengan FB page anda sebelum ini.`)
+          resolve()
         } else  {
           Audit.logAudit(pageId, `Error during sending broadcast to ${recipientId}`, response.error, true)
           let err = new Error(`Error send broadcast mesej in page ${pageId} for recipient ${recipientId}`)
