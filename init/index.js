@@ -8,6 +8,7 @@ const pusherjs = require('./pusher_js')
 const redisClient = require('./redis')
 const sentry = require('./sentry')
 const firebase = require('./firebase')
+const pushnotification = require('./push_notification')
 const PusherListen = require('../app/pusher_listen')
 
 let init = {}
@@ -19,6 +20,7 @@ init.initialize = () => {
     global.Pusher = pusherjs.initPusher()
     global.Redis = redisClient.initRedis()
     global.Raven = sentry.initSentry()
+    global.adminPush = pushnotification.adminPush
 
     PusherListen.listen()
 
