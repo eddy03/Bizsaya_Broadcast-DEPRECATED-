@@ -137,6 +137,10 @@ function sendTheMessage (pageId, accessToken, mid, message, recipientDetail) {
     let recipientId = recipientDetail.sender_id
     message = message.replace(new RegExp('{{sender_name}}', 'g'), recipientDetail.sender_name)
 
+    if(message.length > 640) {
+      message = message.substring(0, 640)
+    }
+
     let params = {
       recipient: { id: recipientId },
       message: { text: message }
@@ -157,6 +161,7 @@ function sendTheMessage (pageId, accessToken, mid, message, recipientDetail) {
           MessengerUserModel.deleteUser(pageId, recipientDetail.sender_id)
             .then(() => {
               MidInformer.sendToUser(pageId, mid, `Mesej ke prospek ${recipientDetail.sender_name} tidak dapat dihantar kerana prospek telah memadam mesej dengan FB page anda sebelum ini atau akaun FB prospek tersebut telah dipadam oleh FB.`)
+              return null
             })
             .catch(err => {
 
@@ -169,13 +174,6 @@ function sendTheMessage (pageId, accessToken, mid, message, recipientDetail) {
           reject(err)
         }
       } else {
-        // MessengerUserModel.deleteUser(pageId, recipientDetail.sender_id)
-        //   .then(() => {
-        //     MidInformer.sendToUser(pageId, mid, `Mesej ke prospek ${recipientDetail.sender_name} tidak dapat dihantar kerana prospek telah memadam mesej dengan FB page anda sebelum ini atau akaun FB prospek tersebut telah dipadam oleh FB.`)
-        //   })
-        //   .catch(err => {
-        //
-        //   })
         resolve()
       }
     })

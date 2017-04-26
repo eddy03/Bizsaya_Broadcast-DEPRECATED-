@@ -27,18 +27,9 @@ MessengerUserModel.getUsers = pageId => {
 
 MessengerUserModel.deleteUser = (pageId, senderId) => {
 
-  return new Promise((resolve, reject) => {
-
-    let key = global.DB.key([ COLLECTION_NAME, `${pageId}__${senderId}` ])
-    global.DB.get(key, err => {
-      if(err) {
-        reject(err)
-      } else {
-        resolve(true)
-      }
-    })
-
-  })
+  let senderToDelete = pageId + '__' + senderId
+  let key = global.DB.key([ COLLECTION_NAME, senderToDelete ])
+  return global.DB.delete(key)
 
 }
 
