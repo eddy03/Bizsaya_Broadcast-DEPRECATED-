@@ -133,8 +133,7 @@ function sendTheMessage (pageId, accessToken, mid, message, recipientDetail) {
     global.Firebase.updateTx()
     global.FB.api('me/messages', 'POST', params, response => {
       if (!response || response.error) {
-
-        if(process.env.DEV === 'true') {
+        if (process.env.DEV === 'true') {
           console.error('Error send broadcast message ', response.error.message)
         }
 
@@ -142,16 +141,15 @@ function sendTheMessage (pageId, accessToken, mid, message, recipientDetail) {
           global.Redis.del(`broadcast_${pageId}`).then(() => { }).catch(err => { console.error('Error ', err) })
           MidInformer.sendToUser(pageId, mid, 'Penggunakan data FB page anda telah sampai ke had yang ditetapkan oleh FB. Bizsaya tidak mampu untuk menghantar sebarang mesej keluar.')
           resolve()
-        } else if(response.error.code === 200 && response.error.error_subcode === 1545041) {
+        } else if (response.error.code === 200 && response.error.error_subcode === 1545041) {
           MidInformer.sendToUser(pageId, mid, `Mesej ke prospek ${recipientDetail.sender_name} tidak dapat dihantar kerana prospek telah memadam mesej dengan FB page anda sebelum ini.`)
           resolve()
-        } else  {
+        } else {
           Audit.logAudit(pageId, `Error during sending broadcast to ${recipientId}`, response.error, true)
           let err = new Error(`Error send broadcast mesej in page ${pageId} for recipient ${recipientId}`)
           err.error = response.error
           reject(err)
         }
-
       } else {
         resolve()
       }

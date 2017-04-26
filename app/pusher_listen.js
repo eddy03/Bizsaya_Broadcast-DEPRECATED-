@@ -17,7 +17,6 @@ pusherListen.listen = () => {
     resolve()
 
     global.Pusher.subscribe(process.env.LISTEN_CHANNEL).bind(process.env.LISTEN_ACTIVITY, data => {
-
       const DB = global.DB
 
       Async.auto({
