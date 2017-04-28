@@ -9,7 +9,7 @@ const redisClient = require('./redis')
 const sentry = require('./sentry')
 const firebase = require('./firebase')
 const pushnotification = require('./push_notification')
-const PusherListen = require('../app/pusher_listen')
+const PusherListen = require('../app/listener')
 
 let init = {}
 

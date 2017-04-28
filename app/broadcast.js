@@ -5,7 +5,8 @@ const Async = require('async')
 const _ = require('lodash')
 
 const MidInformer = require('./notification')
-const Audit = require('./audit')
+const FB = require('./fb')
+const Audit = require('./models/audit')
 
 const MessengerUserModel = require('./models/messenger_user')
 
@@ -93,7 +94,7 @@ function processSpecificData (data) {
                 entity.on_send = false
                 entity.already_send = true
 
-                if(process.env.DEV === 'true') {
+                if (process.env.DEV === 'true') {
                   entity.can_send = true
                   entity.on_send = false
                   entity.already_send = false
@@ -126,29 +127,23 @@ function processSpecificData (data) {
   })
 }
 
-function sendTheMessage (pageId, accessToken, mid, message, recipientDetail) {
+function sendTheMessage (pageId, accessToken, mid, messageData, recipientDetail) {
   return new Promise((resolve, reject) => {
     if (process.env.DONTSEND === 'true') {
       return
     }
 
-    global.FB.setAccessToken(accessToken)
+    let senderId = recipientDetail.sender_id
+    let senderName = recipientDetail.sender_name
 
-    let recipientId = recipientDetail.sender_id
-    message = message.replace(new RegExp('{{sender_name}}', 'g'), recipientDetail.sender_name)
-
-    if(message.length > 640) {
-      message = message.substring(0, 640)
-    }
-
-    let params = {
-      recipient: { id: recipientId },
-      message: { text: message }
-    }
-
-    global.Firebase.updateTx()
-    global.FB.api('me/messages', 'POST', params, response => {
-      if (!response || response.error) {
+    FB.broadcastMessage(senderId, senderName, messageData, accessToken)
+      .then(() => {
+        return FB.broadcastImage(senderId, messageData, accessToken)
+      })
+      .then(() => {
+        resolve()
+      })
+      .catch(response => {
         if (process.env.DEV === 'true') {
           console.error('Error send broadcast message ', response.error.message)
         }
@@ -158,24 +153,21 @@ function sendTheMessage (pageId, accessToken, mid, message, recipientDetail) {
           MidInformer.sendToUser(pageId, mid, 'Penggunakan data FB page anda telah sampai ke had yang ditetapkan oleh FB. Bizsaya tidak mampu untuk menghantar sebarang mesej keluar.')
           resolve()
         } else if (response.error.code === 200 && response.error.error_subcode === 1545041) {
-          MessengerUserModel.deleteUser(pageId, recipientDetail.sender_id)
+          MessengerUserModel.deleteUser(pageId, senderId)
             .then(() => {
-              MidInformer.sendToUser(pageId, mid, `Mesej ke prospek ${recipientDetail.sender_name} tidak dapat dihantar kerana prospek telah memadam mesej dengan FB page anda sebelum ini atau akaun FB prospek tersebut telah dipadam oleh FB.`)
+              MidInformer.sendToUser(pageId, mid, `Mesej ke prospek ${senderName} tidak dapat dihantar kerana prospek telah memadam mesej dengan FB page anda sebelum ini atau akaun FB prospek tersebut telah dipadam oleh FB.`)
               return null
             })
             .catch(err => {
-
+              Audit.logAudit(pageId, `Fail to delete the prospek ${senderName}`, err, true)
             })
           resolve()
         } else {
-          Audit.logAudit(pageId, `Error during sending broadcast to ${recipientId}`, response.error, true)
-          let err = new Error(`Error send broadcast mesej in page ${pageId} for recipient ${recipientId}`)
+          Audit.logAudit(pageId, `Error during sending broadcast to ${senderId}`, response.error, true)
+          let err = new Error(`Error send broadcast mesej in page ${pageId} for recipient ${senderId}`)
           err.error = response.error
           reject(err)
         }
-      } else {
-        resolve()
-      }
-    })
+      })
   })
 }

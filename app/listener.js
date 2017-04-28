@@ -2,12 +2,14 @@
 
 const Promise = require('bluebird')
 const Async = require('async')
-const MidInformer = require('./notification')
-const Audit = require('./audit')
+const _ = require('lodash')
 
+const MidInformer = require('./notification')
+const Audit = require('./models/audit')
 const CredentialsModel = require('./models/credentials')
 const PagesModel = require('./models/pages')
 const MessengerUserModel = require('./models/messenger_user')
+const FB = require('./fb')
 
 let pusherListen = {}
 
@@ -17,7 +19,6 @@ pusherListen.listen = () => {
     resolve()
 
     global.Pusher.subscribe(process.env.LISTEN_CHANNEL).bind(process.env.LISTEN_ACTIVITY, data => {
-
       Async.auto({
         getMID: cb => {
           CredentialsModel.getCredential(data.fb_id)
@@ -44,7 +45,7 @@ pusherListen.listen = () => {
 
         let dataToSave = {
           id: data.id,
-          message: data.message,
+          message: _.cloneDeep(data),
           page_id: data.page_id,
           page_name: results.getPageDetail.name,
           mid: results.getMID.mid,
@@ -60,7 +61,11 @@ pusherListen.listen = () => {
           })
           callback()
         }, () => {
-          global.Redis.set(`broadcast_${data.page_id}`, dataToSave)
+          FB.saveImageAsAttachment(data, data.page_id, dataToSave.access_token)
+            .then(attachmentId => {
+              dataToSave.message.attachment_id = attachmentId
+              return global.Redis.set(`broadcast_${data.page_id}`, dataToSave)
+            })
             .then(() => {
               return global.Redis.get('broadcast')
             })

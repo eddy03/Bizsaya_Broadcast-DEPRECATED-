@@ -4,3 +4,4 @@ node_modules
 google_keyfile.json
 firebase_dev.json
 firebase_prod.json
+npm-debug.log
