@@ -8,7 +8,6 @@ const COLLECTION_NAME = process.env.DEV === 'true' ? 'dev_broadcast_log' : 'broa
 let BroadcastLogModel = {}
 
 BroadcastLogModel.getPageDetail = data => {
-
   data.id = Moment().unix() + '_' + RandomString.generate()
   let key = global.DB.key([COLLECTION_NAME, data.id])
 

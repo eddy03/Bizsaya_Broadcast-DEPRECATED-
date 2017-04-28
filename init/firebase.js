@@ -25,7 +25,9 @@ module.exports = new Promise((resolve, reject) => {
           realTimeStats.todayBroadcast += 1
           realTimeStats.totalBroadcast += 1
 
-          realTimeDatabase.update(realTimeStats)
+          if (process.env.DEV !== 'true') {
+            realTimeDatabase.update(realTimeStats)
+          }
         }
       }
 

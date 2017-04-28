@@ -7,20 +7,16 @@ const COLLECTION_NAME = process.env.DEV === 'true' ? 'dev_credentials' : 'creden
 let CredentialModel = {}
 
 CredentialModel.getCredential = fbId => {
-
   return new Promise((resolve, reject) => {
-
     let key = global.DB.key([ COLLECTION_NAME, fbId ])
     global.DB.get(key, (err, credentialObj) => {
-      if(err) {
+      if (err) {
         reject(err)
       } else {
         resolve(credentialObj)
       }
     })
-
   })
-
 }
 
 module.exports = CredentialModel
