@@ -81,14 +81,14 @@ FB.broadcastMessage = (id, senderName, form, accessToken) => {
 
     form.message = form.message.replace(new RegExp('{{sender_name}}', 'g'), senderName).substring(0, 640)
 
-    if (form.show_phone === true) {
+    if (form.show_phone === true && form.contact_number_label.replace(/\s/g, '').length !== 0 && form.contact_number.replace(/\s/g, '').length !== 0) {
       buttons.push({
         type: 'phone_number',
         title: form.contact_number_label,
         payload: `+6${form.contact_number}`
       })
     }
-    if (form.show_link === true) {
+    if (form.show_link === true && form.link_label.replace(/\s/g, '').length !== 0 && form.link.replace(/\s/g, '').length !== 0) {
       buttons.push({
         type: 'web_url',
         title: form.link_label,
