@@ -1,6 +1,7 @@
 'use strict'
 
 const Promise = require('bluebird')
+const Voca = require('voca')
 
 const Audit = require('./models/audit')
 
@@ -79,7 +80,9 @@ FB.broadcastMessage = (id, senderName, form, accessToken) => {
       message: {}
     }
 
-    form.message = form.message.replace(new RegExp('{{sender_name}}', 'g'), senderName).substring(0, 640)
+    let text = form.message
+    text = Voca.replaceAll(text, '{{sender_name}}', senderName)
+    text = Voca.truncate(text, 640)
 
     if (form.show_phone === true && form.contact_number_label.replace(/\s/g, '').length !== 0 && form.contact_number.replace(/\s/g, '').length !== 0) {
       buttons.push({
@@ -98,14 +101,14 @@ FB.broadcastMessage = (id, senderName, form, accessToken) => {
     }
 
     if (buttons.length === 0) {
-      payload.message = {text: form.message}
+      payload.message = { text }
     } else {
       payload.message = {
         attachment: {
           type: 'template',
           payload: {
             template_type: 'button',
-            text: form.message,
+            text,
             buttons
           }
         }
