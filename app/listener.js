@@ -72,7 +72,7 @@ pusherListen.listen = () => {
             .then(broadcastList => {
               if (broadcastList) {
                 broadcastList.push(`broadcast_${data.page_id}`)
-                return global.Redis.set('broadcast', broadcastList)
+                return global.Redis.set('broadcast', _.uniq(broadcastList))
               } else {
                 return global.Redis.set('broadcast', [ `broadcast_${data.page_id}` ])
               }
