@@ -2,38 +2,21 @@
 
 const path = require('path')
 const Promise = require('bluebird')
-const FirebaseAdmin = require('firebase-admin')
+const googlePubSub = require('@google-cloud/pubsub')
 
-const options = {
-  credential: FirebaseAdmin.credential.cert(path.join(__dirname, '../', process.env.FIREBASE_CREDENTIAL)),
-  databaseURL: process.env.FIREBASE_DATABASE_URL
-}
+const pubsub = googlePubSub({ keyFilename: './google_pubsub.json' })
+const topic = pubsub.topic('update_realtime')
 
-const realTimeDatabase = FirebaseAdmin.initializeApp(options).database().ref(process.env.FIREBASE_REALTIME_KEY_NAME)
+module.exports = new Promise(resolve => {
 
-module.exports = new Promise((resolve, reject) => {
-  let realTimeStats = null
-
-  realTimeDatabase.once('value', data => {
-    if (data.val()) {
-      realTimeStats = data.val()
-
-      let responseObj = {
-        updateTx: () => {
-          realTimeStats.todayTx += 1
-          realTimeStats.totalTx += 1
-          realTimeStats.todayBroadcast += 1
-          realTimeStats.totalBroadcast += 1
-
-          if (process.env.DEV !== 'true') {
-            realTimeDatabase.update(realTimeStats)
-          }
-        }
+  let responseObj = {
+    updateTx: () => {
+      if (process.env.DEV !== 'true') {
+        topic.publish({ task: 'BROADCAST_TX' })
       }
-
-      resolve(responseObj)
-    } else {
-      throw new Error('No Firebase data available!')
     }
-  })
+  }
+
+  resolve(responseObj)
+
 })

@@ -25,6 +25,7 @@
   "homepage": "https://github.com/eddy03/Bizsaya_Broadcast#readme",
   "dependencies": {
     "@google-cloud/datastore": "^0.7.1",
+    "@google-cloud/pubsub": "^0.13.0",
     "async": "^2.2.0",
     "bluebird": "^3.5.0",
     "cron": "^1.2.1",
