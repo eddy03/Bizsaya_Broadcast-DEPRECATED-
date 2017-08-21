@@ -6,3 +6,4 @@ firebase_dev.json
 firebase_prod.json
 google_pubsub.json
 npm-debug.log
+rnd.js

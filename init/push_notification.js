@@ -18,7 +18,7 @@ PN.adminPush = (subject, message) => {
     .set('Content-Type', 'application/json; charset=utf-8')
     .send(sendData)
     .end(err => {
-      if (err) {
+      if(err) {
         console.error('Error push notification ', err)
       }
     })
