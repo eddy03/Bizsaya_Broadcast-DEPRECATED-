@@ -11,14 +11,30 @@ Audit.logAudit = (pageId, message, payload, isError) => {
   let id = Moment().unix() + '_' + RandomString.generate()
   let key = global.DB.key([COLLECTION_NAME, id])
 
-  let data = {
-    id,
-    page_id: pageId,
-    message,
-    payload,
-    is_error: isError || false,
-    created_at: new Date()
-  }
+  let data = [{
+    name: 'id',
+    value: id
+  }, {
+    name: 'page_id',
+    value: pageId
+  }, {
+    name: 'message',
+    value: message,
+    excludeFromIndexes: true
+  }, {
+    name: 'payload',
+    value: payload,
+    excludeFromIndexes: true
+  }, {
+    name: 'is_error',
+    value: isError || false
+  }, {
+    name: 'created_at',
+    value: new Date()
+  }, {
+    name: 'delete_at',
+    value: Moment().add(3, 'd').format('YYYY/MM/DD')
+  }]
 
   global.DB.save({ key, data }, err => {
     if (err) {

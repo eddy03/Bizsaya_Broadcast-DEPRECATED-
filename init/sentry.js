@@ -10,11 +10,7 @@ sentry.initSentry = () => {
     return Raven
   } else {
     console.log('Bizsaya broadcast currently running as development')
-    return {
-      captureException: err => {
-        console.error('Error ', err)
-      }
-    }
+    return { captureException: err => console.error('Error ', err) }
   }
 }
 

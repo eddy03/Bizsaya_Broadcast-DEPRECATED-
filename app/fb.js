@@ -22,13 +22,14 @@ FB.saveImageAsAttachment = (form, pageId, accessToken) => {
         }
       }
 
-      global.Firebase.updateTx()
       global.FB.setAccessToken(accessToken)
       global.FB.api('/me/message_attachments', 'POST', payload, response => {
         if (response && response.error) {
           response.error.payload = payload
           Audit.logAudit(pageId, 'Cannot set image as reuseable', response.error, true)
-          resolve(null)
+          let err = new Error('Cannot set image as reuseable')
+          err.error = response.error
+          reject(err)
         } else {
           resolve(response.attachment_id)
         }
@@ -54,7 +55,6 @@ FB.broadcastImage = (id, form, accessToken) => {
         }
       }
 
-      global.Firebase.updateTx()
       global.FB.setAccessToken(accessToken)
       global.FB.api('/me/messages', 'POST', payload, response => {
         if (response && response.error) {
@@ -115,7 +115,6 @@ FB.broadcastMessage = (id, senderName, form, accessToken) => {
       }
     }
 
-    global.Firebase.updateTx()
     global.FB.setAccessToken(accessToken)
     global.FB.api('/me/messages', 'POST', payload, response => {
       if (response && response.error) {

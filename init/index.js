@@ -1,37 +1,33 @@
 'use strict'
 
 const Promise = require('bluebird')
+const googleCloudDatastore = require('@google-cloud/datastore')
+const facebook = require('fb')
 
-const database = require('./database')
-const facebook = require('./facebook')
-const pusherjs = require('./pusher_js')
 const redisClient = require('./redis')
+const googlePubSub = require('./pubsub')
+
 const sentry = require('./sentry')
-const firebase = require('./firebase')
 const pushnotification = require('./push_notification')
-const PusherListen = require('../app/listener')
 
 let init = {}
 
 init.initialize = () => {
-  return new Promise((resolve, reject) => {
-    global.DB = database.initDB()
-    global.FB = facebook.initFB()
-    global.Pusher = pusherjs.initPusher()
+  return new Promise(resolve => {
+    global.DB = googleCloudDatastore({ keyFilename: './google_keyfile.json' })
+
+    global.FB = facebook.extend({
+      appId: process.env.FB_APP_ID,
+      appSecret: process.env.FB_APP_SECRET
+    })
+
     global.Redis = redisClient.initRedis()
     global.Raven = sentry.initSentry()
     global.adminPush = pushnotification.adminPush
 
-    PusherListen.listen()
+    global.pubsub = googlePubSub()
 
-    firebase
-      .then(data => {
-        global.Firebase = data
-        resolve()
-      })
-      .catch(err => {
-        reject(err)
-      })
+    resolve()
   })
 }
 

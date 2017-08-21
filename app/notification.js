@@ -37,7 +37,7 @@ module.exports = mid
 function sendTo (pageId, id, payload) {
   return new Promise((resolve, reject) => {
     if (id && !_.isEmpty(id)) {
-      global.Firebase.updateTx()
+      global.pubsub.tx(pageId)
       global.FB.setAccessToken(process.env.ACCESSTOKEN)
 
       global.FB.api('me/messages', 'POST', payload, response => {
